@@ -5,7 +5,6 @@ and generates raw style recommendations before RAG enrichment.
 import base64
 import json
 import structlog
-from pathlib import Path
 from anthropic import AsyncAnthropic
 
 from app.core.config import get_settings

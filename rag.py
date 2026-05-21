@@ -9,7 +9,7 @@ import chromadb
 from chromadb.utils import embedding_functions
 
 from app.core.config import get_settings
-from app.models.schemas import Product, ProductCategory, Budget
+from app.models.schemas import Product, ProductCategory
 
 logger = structlog.get_logger()
 settings = get_settings()

@@ -13,7 +13,7 @@ import re
 import uuid
 import argparse
 from pathlib import Path
-from playwright.async_api import async_playwright, TimeoutError as PWTimeoutError
+from playwright.async_api import async_playwright
 from tenacity import retry, stop_after_attempt, wait_exponential
 import structlog
 
