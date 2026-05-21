@@ -1,5 +1,5 @@
 # AI Stylist
-
+![CI](https://github.com/prashastisahu/AI-LLM/actions/workflows/ci.yml/badge.svg)
 An AI-powered fashion and makeup recommendation system. Upload an outfit 
 photo and get personalised makeup and accessory suggestions powered by 
 Gemini Vision API and a RAG pipeline with ChromaDB.
