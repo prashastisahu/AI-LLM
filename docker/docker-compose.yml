@@ -1,0 +1,46 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-stylist}:${POSTGRES_PASSWORD:-stylist}@db:5432/${POSTGRES_DB:-ai_stylist}
+      CHROMA_HOST: chroma
+      CHROMA_PORT: 8000
+    depends_on:
+      db:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-stylist}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stylist}
+      POSTGRES_DB: ${POSTGRES_DB:-ai_stylist}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stylist}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  chroma:
+    # Pinned to match the chromadb Python client version in requirements.txt —
+    # the client/server talk a version-specific protocol, so "latest" can drift
+    # out of sync and break with confusing errors.
+    image: chromadb/chroma:0.6.3
+    volumes:
+      - chromadata:/chroma/chroma
+    ports:
+      - "8001:8000"
+
+volumes:
+  pgdata:
+  chromadata:

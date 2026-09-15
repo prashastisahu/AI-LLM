@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AI Stylist</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  h1 { margin-bottom: 0.25rem; }
+  form { display: flex; flex-direction: column; gap: 0.75rem; margin: 1.5rem 0; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; }
+  label { font-weight: 600; font-size: 0.9rem; }
+  input[type="text"] { padding: 0.5rem; font-size: 1rem; }
+  button { padding: 0.6rem; font-size: 1rem; cursor: pointer; background: #222; color: white; border: none; border-radius: 6px; }
+  button:disabled { background: #999; cursor: not-allowed; }
+  #status { color: #666; font-style: italic; }
+  #results { margin-top: 1.5rem; }
+  .rec { display: flex; gap: 1rem; padding: 1rem 0; border-top: 1px solid #eee; }
+  .rec img { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; background: #f2f2f2; }
+  .rec .no-image { width: 100px; height: 100px; border-radius: 6px; background: #f2f2f2; display: flex; align-items: center; justify-content: center; color: #999; font-size: 0.8rem; text-align: center; }
+  .rec .info { flex: 1; }
+  .rec .category { font-weight: 700; }
+  .rec .product-name { color: #555; font-size: 0.9rem; }
+  .error { color: #b00020; }
+</style>
+</head>
+<body>
+  <h1>AI Stylist</h1>
+  <p>Upload a photo and describe the occasion — you'll get styling suggestions matched to real clothing items.</p>
+
+  <form id="style-form">
+    <div>
+      <label for="image">Photo</label><br />
+      <input type="file" id="image" name="image" accept="image/*" required />
+    </div>
+    <div>
+      <label for="prompt">Occasion / request</label><br />
+      <input type="text" id="prompt" name="prompt" placeholder="e.g. evening dinner" required />
+    </div>
+    <button type="submit" id="submit-btn">Get suggestions</button>
+  </form>
+
+  <p id="status"></p>
+  <div id="results"></div>
+
+  <script>
+    const form = document.getElementById("style-form");
+    const statusEl = document.getElementById("status");
+    const resultsEl = document.getElementById("results");
+    const submitBtn = document.getElementById("submit-btn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      resultsEl.innerHTML = "";
+      statusEl.textContent = "Analysing your photo...";
+      statusEl.className = "";
+      submitBtn.disabled = true;
+
+      const formData = new FormData();
+      formData.append("image", document.getElementById("image").files[0]);
+      formData.append("prompt", document.getElementById("prompt").value);
+
+      try {
+        const response = await fetch("/style", { method: "POST", body: formData });
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          throw new Error(body.detail || `Request failed (${response.status})`);
+        }
+        const data = await response.json();
+        renderResults(data);
+        statusEl.textContent = "";
+      } catch (err) {
+        statusEl.textContent = err.message;
+        statusEl.className = "error";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    function renderResults(data) {
+      const recsHtml = data.recommendations.map((rec) => {
+        const product = rec.product;
+        const image = product && product.image_url
+          ? `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.prod_name)}" />`
+          : `<div class="no-image">No match found</div>`;
+        const productName = product ? `<div class="product-name">${escapeHtml(product.prod_name)} (${escapeHtml(product.colour_group_name)})</div>` : "";
+        return `
+          <div class="rec">
+            ${image}
+            <div class="info">
+              <div class="category">${escapeHtml(rec.category)}</div>
+              ${productName}
+              <div>${escapeHtml(rec.detail)}</div>
+              <div><em>${escapeHtml(rec.reasoning)}</em></div>
+            </div>
+          </div>`;
+      }).join("");
+
+      resultsEl.innerHTML = `
+        <h2>${escapeHtml(data.look_title)}</h2>
+        <p>${escapeHtml(data.look_description)}</p>
+        ${recsHtml}
+        <p><em>${escapeHtml(data.stylist_note)}</em></p>`;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str ?? "";
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
