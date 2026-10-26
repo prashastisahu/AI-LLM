@@ -1,7 +1,7 @@
 # AI Stylist
 ![CI](https://github.com/prashastisahu/AI-LLM/actions/workflows/ci.yml/badge.svg)
 An AI fashion stylist. Upload an outfit photo, describe the occasion, and get
-clothing/accessory suggestions matched to real European clothing (H&M) — not
+clothing/accessory suggestions matched to real European clothing (H&M) not
 just AI-invented text, but actual products with real images.
 
 ## What it does
@@ -46,8 +46,8 @@ cp .env.example .env  # add your Gemini API key; DATABASE_URL defaults to a loca
 uvicorn app.main:app --reload
 ```
 Semantic search and product-matched `/style` results need a running Chroma
-server (`docker run -p 8001:8000 chromadb/chroma:0.6.3` — version pinned to
-match `requirements.txt`) — plain filtering (`GET /products`) and `/style`'s
+server (`docker run -p 8001:8000 chromadb/chroma:0.6.3`, version pinned to
+match `requirements.txt`), plain filtering (`GET /products`) and `/style`'s
 text suggestions work without it.
 
 ## Tests
